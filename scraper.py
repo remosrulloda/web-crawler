@@ -26,7 +26,7 @@ def extract_next_links(url, resp):
     soup = BeautifulSoup(content, 'html.parser')
 
     links = set()
-    for a in soup.fin_all('a', href=True):
+    for a in soup.find_all('a', href=True):
         href = a['href']
         full_url = urljoin(url, href)
         links.add(full_url)    
