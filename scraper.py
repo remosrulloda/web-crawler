@@ -50,6 +50,23 @@ def is_valid(url):
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
+    
+        valid_domains = [
+            'ics.uci.edu',
+            'cs.uci.edu',
+            'informatics.uci.edu',
+            'stat.uci.edu',
+            'today.uci.edu'
+        ]
+
+        # Domain matching
+        if not any(re.match(rf".*\.{domain}$", parsed.netloc) for domain in valid_domains):
+            return False    
+        
+        if "today.uci.edu" in parsed.netloc and not parsed.path.startswith("/department/information_computer_sciences"):
+            return False
+        
+        return True
 
     except TypeError:
         print ("TypeError for ", parsed)
