@@ -1,11 +1,19 @@
 import re
-from urllib.parse import urlparse, urljoin
+from urllib.parse import urlparse, urljoin, urldefrag
 from bs4 import BeautifulSoup
+from crawler_class import CrawlerClass  
 
+crawler = CrawlerClass()
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
-    return [link for link in links if is_valid(link)]
+    valid_links = []
+    for link in links:
+        if is_valid(link) and link not in crawler.unique_urls:
+            crawler.add_url(link)
+            valid_links.append[link]
+
+    return valid_links
 
 def extract_next_links(url, resp):
     # Implementation required.
@@ -17,40 +25,48 @@ def extract_next_links(url, resp):
     #         resp.raw_response.url: the url, again
     #         resp.raw_response.content: the content of the page!
     # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
-    if resp.status != 200:
-        print(f"Failed to retrieve {url}: {resp.error}")
-        return []
-
-    # Parse content
-    content = resp.raw_response.content
-    soup = BeautifulSoup(content, 'html.parser')
-
     links = set()
-    for a in soup.find_all('a', href=True):
-        href = a['href']
-        full_url = urljoin(url, href)
-        links.add(full_url)    
 
-    return list(links)
+    # Check if the response is valid (e.g., status 200) and contains content
+    if resp.status != 200 or not resp.raw_response:
+        return []  # Return empty list if the response isn't valid
+    
+    # Parse the HTML content
+    soup = BeautifulSoup(resp.raw_response.content, "html.parser")
+
+    # Find all <a> tags to get the hyperlinks
+    for tag in soup.find_all("a", href=True):
+        href = tag.get("href")
+        
+        # Resolve relative URLs
+        absolute_url = urljoin(url, href)
+        
+        # Remove URL fragment (anything after #)
+        defragmented_url = urldefrag(absolute_url).url
+        
+        if is_valid(defragmented_url):
+            links.add(defragmented_url)
+            crawler.update_words(resp.raw_response.content)
+
+    return list[links]
+
 
 def is_valid(url):
-    # Decide whether to crawl this url or not. 
-    # If you decide to crawl it, return True; otherwise return False.
-    # There are already some conditions that return False.
     try:
         parsed = urlparse(url)
-        if parsed.scheme not in set(["http", "https"]):
+        if parsed.scheme not in {"http", "https"}:
             return False
-        return not re.match(
-            r".*\.(css|js|bmp|gif|jpe?g|ico"
-            + r"|png|tiff?|mid|mp2|mp3|mp4"
-            + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
-            + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1"
-            + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower())
-    
+
+        # Exclude certain file types based on extension
+        if re.search(
+            r"\.(css|js|bmp|gif|jpe?g|ico|png|tiff?|mid|mp2|mp3|mp4"
+            r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
+            r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso|epub|dll|cnf|tgz|sha1"
+            r"|thmx|mso|arff|rtf|jar|csv|rm|smil|wmv|swf|wma|zip|rar|gz)$", 
+            parsed.path.lower()
+        ):
+            return False
+
         valid_domains = [
             'ics.uci.edu',
             'cs.uci.edu',
@@ -59,15 +75,16 @@ def is_valid(url):
             'today.uci.edu'
         ]
 
-        # Domain matching
-        if not any(re.match(rf".*\.{domain}$", parsed.netloc) for domain in valid_domains):
-            return False    
-        
+        # Check if netloc ends with any of the valid domains
+        if not any(parsed.netloc.endswith(domain) for domain in valid_domains):
+            return False
+
+        # Special path restriction for today.uci.edu
         if "today.uci.edu" in parsed.netloc and not parsed.path.startswith("/department/information_computer_sciences"):
             return False
-        
+
         return True
 
     except TypeError:
-        print ("TypeError for ", parsed)
+        print("TypeError for ", url)
         raise
