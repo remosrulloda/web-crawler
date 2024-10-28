@@ -34,9 +34,11 @@ class CrawlerClass:
 
 
     def add_url(self, url):
+        # Add it to set
         if url not in self.unique_urls:
             self.unique_urls.add(url)  
 
+            # Add it to file
             with open(self.scraped_file, "a") as f:
                 f.write(url + "\n")
 
@@ -49,11 +51,6 @@ class CrawlerClass:
         p3_words = re.findall(r'\w+', text.lower())
         filtered_words = [word for word in p3_words if word not in self.stop_words] 
         self.word_counts.update(filtered_words)
-
-    def update_word_counts(self, html_content):
-        words = self.count_words(html_content)
-        filtered_words = [word for word in words if word not in self.stop_words]  # Filter out stop words
-        self.word_counts.update(filtered_words)  # Update the word count
 
     def get_most_common_words(self, n=50):
         return self.word_counts.most_common(n)
