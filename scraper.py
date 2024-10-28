@@ -9,7 +9,7 @@ def scraper(url, resp):
     links = extract_next_links(url, resp)
     valid_links = []
     for link in links:
-        if is_valid(link) and link not in crawler.unique_urls:
+        if link not in crawler.unique_urls:
             crawler.add_url(link)
             valid_links.append[link]
 
@@ -48,7 +48,7 @@ def extract_next_links(url, resp):
             links.add(defragmented_url)
             crawler.update_words(resp.raw_response.content)
 
-    return list[links]
+    return list(links)
 
 
 def is_valid(url):
