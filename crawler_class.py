@@ -57,7 +57,7 @@ class CrawlerClass:
         self.longest_word_count = max(self.longest_word_count, len(words))
 
         p3_words = re.findall(r'\w+', text.lower())
-        filtered_words = [word for word in p3_words if word not in self.stop_words] 
+        filtered_words = [word for word in p3_words if word not in self.stop_words and len(word) > 1]
         self.word_counts.update(filtered_words)
 
     def get_most_common_words(self, n):
