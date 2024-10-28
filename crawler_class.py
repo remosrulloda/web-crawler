@@ -6,7 +6,13 @@ from urllib.parse import urlparse
 class CrawlerClass:
     def __init__(self):
         self.unique_urls = set()  # Set to store unique URLs
+
         self.scraped_file = "scraped_urls.txt"  # File to store scraped URLs
+        self.longest_word_count_file = "longest_word_count.txt"
+        self.word_counts_file = "word_counts.txt"
+        self.report_file = "report.txt"
+        self.subdomain_counts_file = "subdomain_counts.txt"
+        
         self.longest_word_count = 0
         self.subdomain_counts = defaultdict(int)
 
@@ -49,6 +55,11 @@ class CrawlerClass:
             if parsed_url.hostname and parsed_url.hostname.endswith("uci.edu"):
                 subdomain = parsed_url.hostname
                 self.subdomain_counts[subdomain] += 1
+                
+                with open(self.subdomain_counts_file, "w") as f:
+                    for subdomain, count in sorted(self.subdomain_counts.items()):
+                        f.write(f"{subdomain}, {count}\n")
+
 
     def update_words(self, html_content):
         soup = BeautifulSoup(html_content, "html.parser")
@@ -56,13 +67,23 @@ class CrawlerClass:
         words = text.split()
         self.longest_word_count = max(self.longest_word_count, len(words))
 
+        with open(self.longest_word_count_file, "w") as f:
+                f.write(str(self.longest_word_count))
+
         p3_words = re.findall(r'\w+', text.lower())
         filtered_words = [word for word in p3_words if word not in self.stop_words and len(word) > 1]
+
         self.word_counts.update(filtered_words)
+        
+        with open(self.word_counts_file, "w") as f:
+            for word, count in self.word_counts.most_common():
+                f.write(f"{word}: {count}\n")
+
 
     def get_most_common_words(self, n):
         return self.word_counts.most_common(n)
     
+
     def get_subdomain_list(self):
         # Sort and format subdomains with their counts
         return sorted(
@@ -70,6 +91,7 @@ class CrawlerClass:
             key=lambda x: x[0]
         )
     
+
     def print_report(self):
         with open(self.report_file, "w") as report:
             # Write the total unique URLs
