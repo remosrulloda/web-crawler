@@ -61,7 +61,7 @@ def extract_next_links(url: str, resp: Response) -> list[str]:
             links.add(defragmented_url)
             crawler.update_words(resp.raw_response.content)
 
-    return list[links]
+    return list(links)
 
 
 def is_valid(url: str) -> bool:
