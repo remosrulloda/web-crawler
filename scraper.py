@@ -1,49 +1,62 @@
 import re
-from urllib.parse import urlparse, urljoin, urldefrag
+from urllib.parse import urldefrag, urljoin, urlparse
+
 from bs4 import BeautifulSoup
-from crawler_class import CrawlerClass  
+
+from crawler_class import CrawlerClass
+from utils.response import Response
+
 
 crawler = CrawlerClass()
 
-def scraper(url, resp):
+
+def scraper(url: str, resp: Response) -> list[str]:
+    # Return a list of valid hyperlinks (as strings) scrapped from resp.raw_response.content
+    # Add all links to crawler.unique_urls
+
     links = extract_next_links(url, resp)
-    valid_links = []
+    unique_links = []
+    
     for link in links:
-        if is_valid(link) and link not in crawler.unique_urls:
+        if link not in crawler.unique_urls:
             crawler.add_url(link)
-            valid_links.append[link]
+            unique_links.append(link)
 
-    return valid_links
+    return unique_links
 
-def extract_next_links(url, resp):
-    # Implementation required.
+
+def extract_next_links(url: str, resp: Response) -> list[str]:
+    # Return a list of valid hyperlinks (as strings) scrapped from resp.raw_response.content
+    # Updates crawler.word_counts and crawler.longest_word_count with respective data from page
+    # 
     # url: the URL that was used to get the page
     # resp.url: the actual url of the page
     # resp.status: the status code returned by the server. 200 is OK, you got the page. Other numbers mean that there was some kind of problem.
     # resp.error: when status is not 200, you can check the error here, if needed.
     # resp.raw_response: this is where the page actually is. More specifically, the raw_response has two parts:
-    #         resp.raw_response.url: the url, again
-    #         resp.raw_response.content: the content of the page!
-    # Return a list with the hyperlinks (as strings) scrapped from resp.raw_response.content
+    #     resp.raw_response.url: the url, again
+    #     resp.raw_response.content: the content of the page!
+
     links = set()
 
     # Check if the response is valid (e.g., status 200) and contains content
     if resp.status != 200 or not resp.raw_response:
         return []  # Return empty list if the response isn't valid
-    
+
     # Parse the HTML content
     soup = BeautifulSoup(resp.raw_response.content, "html.parser")
 
     # Find all <a> tags to get the hyperlinks
-    for tag in soup.find_all("a", href=True):
+    for tag in soup.find_all("a", href = True):
         href = tag.get("href")
-        
+
         # Resolve relative URLs
         absolute_url = urljoin(url, href)
-        
+
         # Remove URL fragment (anything after #)
         defragmented_url = urldefrag(absolute_url).url
-        
+
+        # Add valid links to set and update word counts
         if is_valid(defragmented_url):
             links.add(defragmented_url)
             crawler.update_words(resp.raw_response.content)
@@ -51,9 +64,13 @@ def extract_next_links(url, resp):
     return list[links]
 
 
-def is_valid(url):
+def is_valid(url: str) -> bool:
+    # Return whether URL is valid based on protocol, format, and domain
+
     try:
         parsed = urlparse(url)
+        
+        # Include only URLs using HTTP(S) protocol
         if parsed.scheme not in {"http", "https"}:
             return False
 
@@ -86,5 +103,5 @@ def is_valid(url):
         return True
 
     except TypeError:
-        print("TypeError for ", url)
+        print("TypeError for", url)
         raise
