@@ -7,7 +7,7 @@ class CrawlerClass:
     def __init__(self):
         self.unique_urls = set()  # Set to store unique URLs
 
-        self.scraped_file = "scraped_urls.txt"  # File to store scraped URLs
+        self.scraped_file = "scraped_urls.txt"  
         self.longest_word_count_file = "longest_word_count.txt"
         self.word_counts_file = "word_counts.txt"
         self.report_file = "report.txt"
@@ -20,6 +20,7 @@ class CrawlerClass:
             f.write("")
 
         self.word_counts = Counter()
+        
         self.stop_words = {
             "i", "me", "my", "myself", "we", "our", "ours", "ourselves",
             "you", "your", "yours", "yourself", "yourselves", "he", "him",
