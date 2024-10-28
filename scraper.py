@@ -11,7 +11,7 @@ def scraper(url, resp):
     for link in links:
         if link not in crawler.unique_urls:
             crawler.add_url(link)
-            valid_links.append[link]
+            valid_links.append(link)
 
     return valid_links
 
