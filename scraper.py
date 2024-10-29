@@ -83,6 +83,12 @@ def is_valid(url):
         if "today.uci.edu" in parsed.netloc and not parsed.path.startswith("/department/information_computer_sciences"):
             return False
 
+        if re.search(r"/\d{4}-\d{2}-\d{2}|/\d{4}/\d{2}/\d{2}|/\d{4}-\d{2}/|/\d{4}/\d{2}/", parsed.path):
+            return False
+
+        if parsed.query and re.search(r"(date|time|year|month|day)=\d{4}-\d{2}-\d{2}", parsed.query):
+            return False
+
         return True
 
     except TypeError:
