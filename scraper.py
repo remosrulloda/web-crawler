@@ -83,6 +83,10 @@ def is_valid(url):
         if "today.uci.edu" in parsed.netloc and not parsed.path.startswith("/department/information_computer_sciences"):
             return False
 
+        # Returns false if there is a query in the URL
+        if parsed.query:
+            return False
+
         if re.search(r"/\d{4}-\d{2}-\d{2}|/\d{4}/\d{2}/\d{2}|/\d{4}-\d{2}/|/\d{4}/\d{2}/", parsed.path):
             return False
 
