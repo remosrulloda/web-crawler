@@ -5,6 +5,8 @@ from crawler_class import CrawlerClass
 
 crawler = CrawlerClass()
 
+lower_bound = 2000
+
 def scraper(url, resp):
     links = extract_next_links(url, resp)
     valid_links = []
@@ -31,8 +33,22 @@ def extract_next_links(url, resp):
     if resp.status != 200 or not resp.raw_response:
         return []  # Return empty list if the response isn't valid
     
+    content_type = resp.raw_response.headers.get('Content-Type', '')
+    if 'text/html' not in content_type:
+        return []
+
     # Parse the HTML content
-    soup = BeautifulSoup(resp.raw_response.content, "html.parser")
+    try:
+        soup = BeautifulSoup(resp.raw_response.content, "html.parser")
+    except Exception:
+        print(f"Error parsing HTML for {url}: {Exception}")
+        return []
+
+    text = soup.get_text()
+    delimited_text = re.sub('\s+', ' ', text)
+
+    if len(delimited_text) < lower_bound:
+        return list()
 
     # Find all <a> tags to get the hyperlinks
     for tag in soup.find_all("a", href=True):
@@ -78,7 +94,7 @@ def is_valid(url):
         # Check if netloc ends with any of the valid domains
         if not any(parsed.netloc.endswith(domain) for domain in valid_domains):
             return False
-
+ 
         # Special path restriction for today.uci.edu
         if "today.uci.edu" in parsed.netloc and not parsed.path.startswith("/department/information_computer_sciences"):
             return False
@@ -91,6 +107,9 @@ def is_valid(url):
             return False
 
         if parsed.query and re.search(r"(date|time|year|month|day)=\d{4}-\d{2}-\d{2}", parsed.query):
+            return False
+        
+        if "?share=" in url or "pdf" in url or "redirect" in url or "#comment" in url or "#respond" in url or "#comments" in url:
             return False
 
         return True
