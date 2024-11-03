@@ -5,7 +5,7 @@ from crawler_class import CrawlerClass
 
 crawler = CrawlerClass()
 
-lower_bound = 2000
+lower_bound = 700
 
 def scraper(url, resp):
     links = extract_next_links(url, resp)
@@ -48,7 +48,7 @@ def extract_next_links(url, resp):
     delimited_text = re.sub('\s+', ' ', text)
 
     if len(delimited_text) < lower_bound:
-        return list()
+        return []
 
     # Find all <a> tags to get the hyperlinks
     for tag in soup.find_all("a", href=True):
@@ -114,6 +114,6 @@ def is_valid(url):
 
         return True
 
-    except TypeError:
-        print("TypeError for ", url)
-        raise
+    except Exception as e:
+        print(f"Error validating URL {url}: {e}")
+        return False
