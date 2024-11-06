@@ -12,6 +12,7 @@ class CrawlerClass:
         self.word_counts_file = "word_counts.txt"
         self.report_file = "report.txt"
         self.subdomain_counts_file = "subdomain_counts.txt"
+        self.longest_page_url = ""
         
         self.longest_word_count = 0
         self.subdomain_counts = defaultdict(int)
